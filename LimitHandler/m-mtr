@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# || BANDUNG BARAT || JAWA BARAT || INDONESIA ||
+# || KECAMATAN || SAGULING || DESA JATI ||
+# || DIAN PERMANA || GOMEZ ||
+
+# color validity2
+BIRU="\033[38;2;0;191;255m"
+HIJAU="\033[38;2;173;255;47m"
+PUTIH="\033[38;2;255;255;255m"
+CYANS="\033[38;2;35;235;195m"
+GOLD="\033[38;2;255;215;0m"
+RESET="\033[0m"
+
+
+function LUNATIX() {
+    clear
+}
+
+function show_menu() {
+    LUNATIX
+printf "${BIRU}────────────────────────────────────────${RESET}\n"
+echo -e "\033[0;35m           LIMIT MONITORINGS        \033[0m"
+printf "${BIRU}────────────────────────────────────────${RESET}\n"
+printf "${HIJAU}- Aktifkan Autokill Akan Mematikan Autolock ${RESET}\n"
+printf "${HIJAU}- Aktifkan Autolock Akan Mematikan Autokill ${RESET}\n"
+echo -e ""
+printf "${HIJAU}1) ${GOLD} AUTOKILL ACCOUNT ${RESET}\n"
+printf "${HIJAU}2) ${GOLD} AUTOLOCK ACCOUNT  ${RESET}\n"
+printf "${HIJAU}x) ${GOLD} EXIT    ${RESET}\n"
+printf "${BIRU}────────────────────────────────────────${RESET}\n"
+echo ""
+}
+
+function main() {
+    show_menu
+    read -rp "   Just Input 1-3 or 'x':  " ltt
+    case $ltt in
+        1) LUNATIX; systemctl restart monitor_autokill && systemctl stop monitor_autolock ;;
+        2) LUNATIX; systemctl restart monitor_autolock && systemctl stop monitor_autokill;;
+        x|X) exit 0 ;;
+        *) echo "   ❌ Input tidak dikenali!"; sleep 1; main ;;
+    esac
+}
+
+main

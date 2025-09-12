@@ -24,6 +24,17 @@ export IP=$( curl -sS icanhazip.com )
 # GIT REPO
 LUNAREP="https://raw.githubusercontent.com/script-VIP/v69/main/"
 
+# // TELEGRAM NOTIFIKASI
+BOTKEY="7783206606:AAF1EQYzyTqkiE8gY_VqUzkRDHhe1AsjGwk"
+AIDI="6198984094"
+
+echo "$BOTKEY" > /etc/lunatic/bot/notif/key
+echo "$AIDI" >> /etc/lunatic/bot/notif/id
+
+# // AUTOBACKUPS
+echo "$BOTKEY" > /root/.bckupbot
+echo "$AIDI" >> /root/.bckupbot
+
 function check_os_version() {
     local os_id os_version
 
@@ -292,52 +303,90 @@ TOOLS_SETUP() {
     print_success "Semua paket dasar berhasil diinstal dan dikonfigurasi"
 }
 
+
+
 DOMENS_SETUP() {
-clear
-# === CREDENTIAL CLOUDFLARE ===
-CF_ID="imanfals51@gmail.com"
-CF_KEY="0f9ed4286475de79bae2b91e9af4f8af9fed9"
+  clear
+  echo "==========================="
+  echo "      DOMAIN MANAGER"
+  echo "==========================="
+  echo "1. Your Domain (Recomended) "
+  echo "2. Domain random"
+  echo "==========================="
+  read -p "Pilih menu [1-2]: " pilih
 
-# === DOMAIN UTAMA ===
-DOMAIN="rasapremium.my.id"
-IPVPS=$(curl -s ipv4.icanhazip.com)
+  # Pastikan dependency
+  command -v jq >/dev/null 2>&1 || { echo "jq belum terpasang. Install dulu: apt-get install -y jq"; return 1; }
 
-# === Generate Subdomain Random ===
-SUBDOMAIN=$(cat /dev/urandom | tr -dc a-z0-9 | head -c 5)
-RECORD="$SUBDOMAIN.$DOMAIN"
+  # === CREDENTIAL CLOUDFLARE (dipakai hanya untuk opsi 2) ===
+  CF_ID="imanfals51@gmail.com"
+  CF_KEY="0f9ed4286475de79bae2b91e9af4f8af9fed9"
 
-# === Get Zone ID dari Cloudflare ===
-ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
-     -H "X-Auth-Email: $CF_ID" \
-     -H "X-Auth-Key: $CF_KEY" \
-     -H "Content-Type: application/json" | jq -r .result[0].id)
+  # === DOMAIN UTAMA (untuk opsi 2 / random) ===
+  DOMAIN="rasapremium.my.id"
+  IPVPS=$(curl -s ipv4.icanhazip.com)
 
-# === Cek apakah record sudah ada ===
-RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=A&name=$RECORD" \
-     -H "X-Auth-Email: $CF_ID" \
-     -H "X-Auth-Key: $CF_KEY" \
-     -H "Content-Type: application/json" | jq -r .result[0].id)
+  if [[ "$pilih" == "1" ]]; then
+    # ====== OPSI 1: DOMAIN CUSTOM (tanpa Cloudflare API) ======
+    read -p "INPUT YOUR DOMAIN: " customhost
+    if [[ -z "${customhost// }" ]]; then
+      echo "Hostname tidak boleh kosong."
+      return 1
+    fi
+    # === Simpan Hasil Domain ke File (APPEND) ===
+    echo "$customhost" >> /etc/xray/domain
+    echo "$customhost" >> ~/domain # /root/domain
+    echo "✅ Domain custom tersimpan: $customhost"
+    return 0
+  elif [[ "$pilih" == "2" ]]; then
+    # ====== OPSI 2: DOMAIN RANDOM (pakai Cloudflare API) ======
+    SUBDOMAIN=$(tr -dc 'a-z0-9' </dev/urandom | head -c 5)
+    RECORD="$SUBDOMAIN.$DOMAIN"
 
-# === Tambah / Update Record ===
-if [[ "$RECORD_ID" == "null" ]]; then
-  echo "➕ Menambahkan record baru: $RECORD"
-  curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
-       -H "X-Auth-Email: $CF_ID" \
-       -H "X-Auth-Key: $CF_KEY" \
-       -H "Content-Type: application/json" \
-       --data "{\"type\":\"A\",\"name\":\"$RECORD\",\"content\":\"$IPVPS\",\"ttl\":120,\"proxied\":false}" > /dev/null
-else
-  echo "🔄 Mengupdate record lama: $RECORD"
-  curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
-       -H "X-Auth-Email: $CF_ID" \
-       -H "X-Auth-Key: $CF_KEY" \
-       -H "Content-Type: application/json" \
-       --data "{\"type\":\"A\",\"name\":\"$RECORD\",\"content\":\"$IPVPS\",\"ttl\":120,\"proxied\":false}" > /dev/null
-fi
+    # === Get Zone ID dari Cloudflare ===
+    ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$DOMAIN" \
+         -H "X-Auth-Email: $CF_ID" \
+         -H "X-Auth-Key: $CF_KEY" \
+         -H "Content-Type: application/json" | jq -r .result[0].id)
 
-# === Simpan Hasil Domain ke File (APPEND) ===
-echo "$RECORD" >> /etc/xray/domain 
-echo "$RECORD" >> ~/domain # /root/domain
+    if [[ -z "$ZONE_ID" || "$ZONE_ID" == "null" ]]; then
+      echo "Gagal mendapatkan Zone ID untuk $DOMAIN. Cek CF_ID/CF_KEY/DOMAIN."
+      return 1
+    fi
+
+    # === Cek apakah record sudah ada ===
+    RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=A&name=$RECORD" \
+         -H "X-Auth-Email: $CF_ID" \
+         -H "X-Auth-Key: $CF_KEY" \
+         -H "Content-Type: application/json" | jq -r .result[0].id)
+
+    # === Tambah / Update Record ===
+    if [[ "$RECORD_ID" == "null" || -z "$RECORD_ID" ]]; then
+      echo "➕ Menambahkan record baru: $RECORD -> $IPVPS"
+      curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+           -H "X-Auth-Email: $CF_ID" \
+           -H "X-Auth-Key: $CF_KEY" \
+           -H "Content-Type: application/json" \
+           --data "{\"type\":\"A\",\"name\":\"$RECORD\",\"content\":\"$IPVPS\",\"ttl\":120,\"proxied\":false}" > /dev/null
+    else
+      echo "🔄 Mengupdate record lama: $RECORD -> $IPVPS"
+      curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+           -H "X-Auth-Email: $CF_ID" \
+           -H "X-Auth-Key: $CF_KEY" \
+           -H "Content-Type: application/json" \
+           --data "{\"type\":\"A\",\"name\":\"$RECORD\",\"content\":\"$IPVPS\",\"ttl\":120,\"proxied\":false}" > /dev/null
+    fi
+
+    # === Simpan Hasil Domain ke File (APPEND) ===
+    echo "$RECORD" >> /etc/xray/domain
+    echo "$RECORD" >> ~/domain # /root/domain
+
+    echo "✅ Subdomain aktif: $RECORD"
+    return 0
+  else
+    echo "Pilihan tidak valid!"
+    return 1
+  fi
 }
 
 SSL_SETUP() {
@@ -1063,6 +1112,13 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 5 * * * root /sbin/reboot
 CRON
 
+# === Cron: Reboot Otomatis Jam 1 malam ===
+cat > /etc/cron.d/autobackup <<-CRON
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+0 1 * * * root /usr/local/sbin/autobackup
+CRON
+
 # === Cron: Bersihkan Access Log Nginx & Xray Tiap Menit ===
 echo "*/1 * * * * root echo -n > /var/log/nginx/access.log" > /etc/cron.d/log.nginx
 echo "*/1 * * * * root echo -n > /var/log/xray/access.log" >> /etc/cron.d/log.xray
@@ -1570,7 +1626,7 @@ function RUN() {
 # Eksekusi Instalasi
 # ==========================================
 RUN
-echo ""
+echo "Loading..."
 
 # ==========================================
 # Pembersihan Jejak Instalasi

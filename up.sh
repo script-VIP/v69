@@ -13,6 +13,9 @@ echo -e "\033[32;1m Download New Menu.... \033[0m"
     unzip LUNAVPN
 
 clear
+    wget https://raw.githubusercontent.com/script-VIP/v69/main/LTbotVPN/LTBOTWA.zip
+    unzip LTBOTWA.zip
+clear
     
     chmod +x menu/*
     mv menu/* /usr/local/sbin

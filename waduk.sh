@@ -329,7 +329,7 @@ DOMENS_SETUP() {
   if [[ "$pilih" == "1" ]]; then
     # ====== OPSI 1: DOMAIN CUSTOM (tanpa Cloudflare API) ======
     read -p "INPUT YOUR DOMAIN: " customhost
-    if [[ -z "${customhost// }" ]]; then
+    if [[ -z "${customhost}" ]]; then
       echo "Hostname tidak boleh kosong."
       return 1
     fi
@@ -400,7 +400,6 @@ SSL_SETUP() {
     fi
 
     domain=$(cat /root/domain)
-
     # Hentikan service yang menggunakan port 80
     webserver_port=$(lsof -i:80 | awk 'NR==2 {print $1}')
     if [[ -n "$webserver_port" ]]; then

@@ -17,7 +17,7 @@ apt install curl -y && apt install wget -y && apt install jq -y
 apt install lolcat -y && apt install gem -y && gem install lolcat -y
 apt install dos2unix -y
 apt install python -y && apt install python3 -y
-
+apt install socat
 IPVPS=$(curl -sS ipv4.icanhazip.com)
 export IP=$( curl -sS icanhazip.com )
 
@@ -28,12 +28,8 @@ LUNAREP="https://raw.githubusercontent.com/script-VIP/v69/main/"
 BOTKEY="7783206606:AAF1EQYzyTqkiE8gY_VqUzkRDHhe1AsjGwk"
 AIDI="6198984094"
 
-echo "$BOTKEY" > /etc/lunatic/bot/notif/key
-echo "$AIDI" >> /etc/lunatic/bot/notif/id
-
-# // AUTOBACKUPS
-echo "$BOTKEY" > /root/.bckupbot
-echo "$AIDI" >> /root/.bckupbot
+echo "BOTKEY" > /etc/lunatic/bot/notif/key
+echo "AIDI" >> /etc/lunatic/bot/notif/id
 
 function check_os_version() {
     local os_id os_version
@@ -270,7 +266,7 @@ TOOLS_SETUP() {
 
     # Paket dasar
     apt install -y \
-        zip pwgen openssl netcat socat cron bash-completion figlet sudo \
+        zip pwgen openssl netcat cron bash-completion figlet sudo \
         zip unzip p7zip-full screen git cmake make build-essential \
         gnupg gnupg2 gnupg1 apt-transport-https lsb-release jq htop lsof tar \
         dnsutils python3-pip python ruby ca-certificates bsd-mailx msmtp-mta \
@@ -304,14 +300,13 @@ TOOLS_SETUP() {
 }
 
 
-
 DOMENS_SETUP() {
   clear
   echo "==========================="
   echo "      DOMAIN MANAGER"
   echo "==========================="
-  echo "1. Your Domain (Recomended) "
-  echo "2. Domain random"
+  echo -e "\e[97;1m1. Domain custom \e[92;1m(RECOMMENDED)\e[0m"
+  echo -e "\e[97;1m2. Domain random"
   echo "==========================="
   read -p "Pilih menu [1-2]: " pilih
 
@@ -338,6 +333,8 @@ DOMENS_SETUP() {
     echo "$customhost" >> ~/domain # /root/domain
     echo "✅ Domain custom tersimpan: $customhost"
     return 0
+
+# // menu 2
   elif [[ "$pilih" == "2" ]]; then
     # ====== OPSI 2: DOMAIN RANDOM (pakai Cloudflare API) ======
     SUBDOMAIN=$(tr -dc 'a-z0-9' </dev/urandom | head -c 5)
@@ -394,12 +391,13 @@ SSL_SETUP() {
     print_install "Memasang SSL Certificate pada domain"
 
     # Cek domain
-    if [[ ! -f /root/domain ]]; then
-        print_error "File /root/domain tidak ditemukan!"
+    if [[ ! -f /etc/xray/domain ]]; then
+        print_error "File /etc/xray/domain tidak ditemukan!"
         return 1
     fi
 
-    domain=$(cat /root/domain)
+    domain=$(cat /etc/xray/domain)
+
     # Hentikan service yang menggunakan port 80
     webserver_port=$(lsof -i:80 | awk 'NR==2 {print $1}')
     if [[ -n "$webserver_port" ]]; then
@@ -1625,7 +1623,8 @@ function RUN() {
 # Eksekusi Instalasi
 # ==========================================
 RUN
-echo "Loading..."
+UDEPE
+echo ""
 
 # ==========================================
 # Pembersihan Jejak Instalasi

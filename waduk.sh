@@ -20,14 +20,10 @@ apt install python -y && apt install python3 -y
 apt install socat
 IPVPS=$(curl -sS ipv4.icanhazip.com)
 export IP=$( curl -sS icanhazip.com )
-eval $(wget -qO- "https://raw.githubusercontent.com/script-VIP/Vip/main/Fls/botkey")
+eval $(wget -qO- "configure")
 URL="https://api.telegram.org/bot$KEY/sendMessage"
 # GIT REPO
 LUNAREP="https://raw.githubusercontent.com/script-VIP/v69/main/"
-
-
-echo "BOTKEY" > /etc/lunatic/bot/notif/key
-echo "AIDI" >> /etc/lunatic/bot/notif/id
 
 function check_os_version() {
     local os_id os_version
@@ -385,8 +381,8 @@ DOMENS_SETUP() {
 }
 clear
 restart_system() {
-USRSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/izin/main/ip | grep $ipsaya | awk '{print $2}')
-EXPSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/izin/main/ip | grep $ipsaya | awk '{print $3}')
+USRSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/permission/main/ip | grep $ipsaya | awk '{print $2}')
+EXPSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/permission/main/ip | grep $ipsaya | awk '{print $3}')
 TIMEZONE=$(printf '%(%H:%M:%S)T')
 TEXT="
 <code>────────────────────</code>
@@ -854,32 +850,20 @@ OPVPN_SETUP() {
 
 
 RCLONE_SETUP() {
-    clear
-    print_install "Memasang Backup Server"
-
-    # Instalasi rclone
-    apt install rclone -y
-    printf "q\n" | rclone config
-
-    # Unduh konfigurasi rclone
-    wget -O /root/.config/rclone/rclone.conf "${LUNAREP}configure/rclone.conf"
-
-    # Clone dan install wondershaper untuk manajemen bandwidth
-    cd /bin
-    git clone https://github.com/LunaticTunnel/wondershaper.git
-    cd wondershaper
-    sudo make install
-    cd ~
-    rm -rf wondershaper
-
-    # Buat file dummy untuk backup (kalau belum ada)
-    echo > /home/files
-
-    # Install tool pengirim email
-    apt install msmtp-mta ca-certificates bsd-mailx -y
-
-    # Konfigurasi msmtp (pengiriman email backup via Gmail SMTP)
-    cat <<EOF > /etc/msmtprc
+clear
+print_install "Memasang Backup Server"
+apt install rclone -y
+printf "q\n" | rclone config
+wget -O /root/.config/rclone/rclone.conf "${LUNAREP}configure/rclone.conf"
+cd /bin
+git clone https://github.com/magnific0/wondershaper.git
+cd wondershaper
+sudo make install
+cd
+rm -rf wondershaper
+echo > /home/files
+apt install msmtp-mta ca-certificates bsd-mailx -y
+cat<<EOF>>/etc/msmtprc
 defaults
 tls on
 tls_starttls on
@@ -893,16 +877,11 @@ from oceantestdigital@gmail.com
 password jokerman77
 logfile ~/.msmtp.log
 EOF
-
-    # Ubah permission agar bisa diakses oleh webserver jika perlu
-    chown -R www-data:www-data /etc/msmtprc
-
-    # Download file ipserver dan eksekusi
-    wget -q -O /etc/ipserver "${LUNAREP}configure/ipserver" && bash /etc/ipserver
-
-    print_success "Backup Server"
+chown -R www-data:www-data /etc/msmtprc
+wget -q -O /etc/ipserver "${LUNAREP}configure/ipserver" && bash /etc/ipserver
+print_success "Backup Server"
 }
-
+clear
 
 # Fungsi: Menginstall swap 1GB dan alat monitoring gotop
 SWAPRAM_SETUP(){

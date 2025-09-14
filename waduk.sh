@@ -846,6 +846,22 @@ OPVPN_SETUP() {
     /etc/init.d/openvpn restart
 
     print_success "OpenVPN"
+    clear
+print_install "MEMASANG NOOBZVPNS"
+cd
+apt install git -y
+git clone https://github.com/Ilham24022001/noobzvpn.git
+cd noobzvpn/
+chmod +x install.sh
+./install.sh
+
+echo start service noobzvpns
+systemctl start noobzvpns &>/dev/null
+
+echo enable service noobzvpns
+systemctl enable noobzvpns &>/dev/null
+print_success "NOOBZVPNS"
+}
 }
 
 
@@ -1095,6 +1111,19 @@ SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 2 0 * * * root /usr/local/sbin/xp
 CRON
+cat >/etc/cron.d/daily_backup <<-END
+		0 7 * * * root /usr/local/bin/daily_backup
+	END
+
+cat >/usr/local/bin/daily_backup <<-END
+
+/usr/local/sbin/backup -r now
+END
+	chmod +x /usr/local/bin/daily_backup
+
+cat >/etc/cron.d/xp_sc <<-END
+		1 0 * * * root /usr/local/bin/xp_sc
+	END
 
 # === Cron: Bersihkan Log Setiap 10 Menit ===
 cat > /etc/cron.d/logclean <<-CRON

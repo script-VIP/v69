@@ -862,7 +862,7 @@ echo enable service noobzvpns
 systemctl enable noobzvpns &>/dev/null
 print_success "NOOBZVPNS"
 }
-}
+
 
 
 RCLONE_SETUP() {

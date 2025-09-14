@@ -389,6 +389,8 @@ DOMENS_SETUP() {
 SSL_SETUP() {
     clear
     print_install "Memasang SSL Certificate pada domain"
+sudo apt update
+sudo apt install socat
 
     # Cek domain
     if [[ ! -f /etc/xray/domain ]]; then

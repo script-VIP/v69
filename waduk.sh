@@ -17,7 +17,10 @@ apt install curl -y && apt install wget -y && apt install jq -y
 apt install lolcat -y && apt install gem -y && gem install lolcat -y
 apt install dos2unix -y
 apt install python -y && apt install python3 -y
-apt install socat
+apt install socat -y
+apt install npm -y
+npm install -g pm2
+
 IPVPS=$(curl -sS ipv4.icanhazip.com)
 export IP=$( curl -sS icanhazip.com )
 eval $(wget -qO- "configure")

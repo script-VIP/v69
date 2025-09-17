@@ -60,6 +60,10 @@ print_status "📦 Menginstal Node.js versi 20.x LTS..."
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
+# Install PM2 untuk manajemen proses
+print_status "📦 Menginstal PM2 (Process Manager)..."
+npm install -g pm2
+
 # Verifikasi versi Node dan npm
 print_status "🧪 Memverifikasi Node dan npm..."
 echo "✅ Versi Node.js: $(node -v)"
@@ -69,7 +73,39 @@ echo "✅ Versi npm: $(npm -v)"
 print_status "📦 Menginstal dependensi npm..."
 cd /usr/bin/LTBOTWA && npm install
 
+# Buat startup script untuk PM2
+print_status "🔧 Membuat konfigurasi PM2..."
+cat > /usr/bin/LTBOTWA/ecosystem.config.js << EOF
+module.exports = {
+  apps: [{
+    name: 'ltbotwa',
+    script: './index.js',
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      NODE_ENV: 'production'
+    }
+  }]
+}
+EOF
+
+# Setup PM2 untuk start pada boot
+print_status "⚙️ Mengatur PM2 untuk start otomatis pada boot..."
+pm2 startup
+pm2 start /usr/bin/LTBOTWA/ecosystem.config.js
+pm2 save
+
 print_status "🎉 Instalasi selesai!"
 print_status "📝 Setelah beres memasukan nomor dan pairing code, tekan Ctrl + C"
-print_status "🚀 Menjalankan aplikasi..."
-node /usr/bin/LTBOTWA/index.js
+print_status "🤖 Bot akan tetap berjalan di background dengan PM2"
+print_status "📋 Perintah manajemen:"
+print_status "   • pm2 status ltbotwa      - Lihat status bot"
+print_status "   • pm2 logs ltbotwa        - Lihat logs"
+print_status "   • pm2 restart ltbotwa     - Restart bot"
+print_status "   • pm2 stop ltbotwa        - Stop bot"
+
+# Jalankan untuk pairing pertama kali
+print_status "🚀 Menjalankan aplikasi untuk pairing..."
+cd /usr/bin/LTBOTWA && node index.js
